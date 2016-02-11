@@ -1,0 +1,49 @@
+Intro
+------
+
+- Manage users, groups, roles, policies(1 or more permissions);  level of access for AWS console.
+- centralized control
+- shared access
+- granualr permissions
+- identity federation - fb, linkedin , active directory
+- mfa
+- own password rotation policy
+- supports PCI DSS - credit card.
+- not region specfiic
+
+Active Directory Federation
+---------------------------
+
+- WebSSO, browser receives SAML ( secure assertive markup language )
+- uses AssumeRoleWithSAML API
+
+Web Identity Federation
+-----------------------
+
+- can authenticate using facebook, linkedin, google, amazon accounts.
+
+Summary
+-------
+
+Remember: using: SAML Secure Assertive Markup Language
+          step 1: Authenticate against Identity Provider : Facebook / AD / LinkedIn
+          step 2: Obtain Temporary Security Credentials 
+          step 3: Use AssumeRoleWithWebIdentity API call for Web Identity Federation.
+                  Use AssumeRoleWithSAML        API call for Active Directory Federation.
+          step 4: Access AWS resources.
+
+TIP: Once an EC2 instance has been provisioned, you cannot change its role. But you can change the permissions on the role.
+
+Permissions of a user is a group of Policies.
+Policy is JSON eg: 
+{
+  "Version": "2012-10-17",
+  "Statement": [
+          {
+                "Effect": "Allow",
+                "Action": "s3:*",
+                "Resource": "*"
+              }
+    ]
+}
+

@@ -1,0 +1,21 @@
+-Relational OLTP
+    -RDS Mysql, SQL, PostGres, Oracle, Aurora (amazon built from scratch)
+
+-Non relational NoSQL
+    -DynamoDB document orientated
+    -document orientated, key-value, tabular
+    -colection->documents->key-value 
+    -collection = table, document = row, key-value = fields
+    -dynamoDB **cant* have embedded data structures!
+
+-Data Warehosuing OLAP
+    -Redshift
+    -Buisness Intelligent tools eg: cognos, SQLSRS, Oracle Hyperion, SAP NetWeaver
+    -OLTP vs OLAP : differs by types of queries
+                  : OLTP order number : 2010101 returns a few records often, small amount of data with lots of fields.
+                  : OLAP pulls large numbers of records once a day, large data queried not very often.
+
+-ElasticCache
+    -webservice: in memory cache
+    -memcached, redis
+    -use for session variables ie: user is logged. in case ec2 instance pegs the user doesnt have to login again.

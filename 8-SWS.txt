@@ -1,0 +1,27 @@
+===========================
+1. Simple Workflow Service
+===========================
+
+-web service to coordinate work across distributed app components.
+-eg: an amazon order :
+-customer order -> verify order -> charge creditcard -> ship order -> warehouse shit -> delivery -> close.
+-workers and deciders
+-worker: program that does the shit and return result.
+-decider: program that does the deciding shit. ordering, concurrency, scheduling if this then that
+-workers and deciders can run on ec2 or behind firewalls
+-AWF brokers interactions between workers and deciders.
+-allows decidr to get consistent views into progress of tasks and initiate new tasks.
+-AWF stores tasks, assigns to workers  and monitors progress.
+-SWK ensures task is only assigned once, never duplicated.
+-SWF maintains applictions state durably, workers and deciders dont keep track of state so they can run independantly and scale quickly.
+
+-domain is a container of workflow and activity types.
+-domain isolate a set of types , executions, and task lists from each other in the same account.
+-use RegisterDomain API call
+-register domain in JSON
+-!max workflow can be 1 year, value is in seconds.
+
+-!SQS vs SWF, SWF only ever done once!!!
+-!SQS vs SWF, SWF max length is 1 year : SQS max time is 12 hours.
+-!SQS vs SWF, SWF is task orientated API : SQS is message oriented API
+

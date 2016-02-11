@@ -1,0 +1,11 @@
+=================
+1.Intro
+=================
+
+-scripted infrastructure
+-deployed in stacks or template of existing resources
+-template eg: LAMP, ruby on rails stack, wordpress blog, windows active directory etc
+-!cloudformartion is free but you pay for the resources cloudformation creates.
+-can program an output - Fn::GetAtt is get attribute of something!
+-Role backs, can role back automatically on by default
+

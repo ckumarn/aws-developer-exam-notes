@@ -1,0 +1,13 @@
+==========
+1. Intro
+==========
+
+-infrastructure services
+    -EC2, EBS, VPC etc
+    -amazon responsible up to hypervisor level, you have whole machine
+-container services 
+    -RDS, EMR 
+    -amazon responsible up to operating system level, you only have database to use, you are responsible for firewall
+-abstracted servcies 
+    -s3, dynamodb 
+    -amazon is responsible for everything except clients side data encryptin and customer data, you only have access via API

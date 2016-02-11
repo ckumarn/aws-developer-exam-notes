@@ -1,0 +1,127 @@
+============
+1. Intro
+============
+
+-provision a logically isolated section of AWS where you can launch resources in a virtual network that you define.
+-complete control of network eg: IP address range, subnets, route tables and network gateways
+-eg: create public facing subnet for webservers to access internet, and backend systems eg databases / application servers in a private-facing subnet.
+-security groups and network access control lists
+-can create hardware virtual private network VPN connection between your corporate datacentre and VPC and use AWS as extension of coprorate data centre. Direct Connect.
+
+-security - instance security groups
+          - subnet network ACLs
+-default VPC vs custom VPC:
+-default:
+    -user firendly, allows to immediately deploy instances
+    -all subnets in default VPC have internet gateway attached.
+    -each ec2 instance has public and private IP
+    -if you delete the defauly VPC the only way to get it back is to call AWS.
+
+-VPC Peering - connect one VPC to another via direct netowrk route using private IP addresses.
+             - instance behave like on same network
+             - peer with other AWS accounts and other VPCs in same account.
+             - star cofnifuarion: ie: one central VPC peering with 4 others.
+
+-Restrictions - 5 elastic IP addresses
+              - 5 intetenet gateways
+              - 5 VPCs per regions
+              - 50 VPN connections per region
+              - 50 custome gateways per region
+              - 200 route tables per region
+              - 100 security groups per VPC
+              - 50 rules per security group.
+
+=================
+2. Build Custom.
+=================
+
+-create VPC: name: mynewcrap, 
+             CIDR: 10.0.0.0/16, 
+             tenenacy: default
+-creating a VPC will automatically create a route table.
+-create subnet : nametag: 10.0.1.0 - us-east-1a , 
+                 VPC: mynewcrap
+                 Availibiltiy Zone: us-east-1  !!! ONE SUBSET = ONE AVAILIBILITY ZONE
+                 CIDR block : 10.0.1.0/24
+    -create 3 in total, one per AV zone.
+    -all ec2 instances shoyld be able to SSH across all subnets in VPC.
+-add internet gateway
+    -nametag: VICTOR-IGW
+    -Attach to VPC 
+    -ONE INTERNET-GATEWAYS PER VPC!!
+    -allows internet access to EC2 instances
+-add route-table:
+    -route table created by default.
+    -but you need to create a new route table to enable internet gateway to talk to ec2 instances.
+    -routes : -destination: ALL eg: 0.0.0.0/0
+              -target: YOUR NEW INTERNET GATEWAY
+              -subnet associations: - here add which subnets can use route table to access internet-gateway.
+              -so you can make only some subnets have internet access etc
+
+-create a new ec2 instance on VPC in the internet facing subnet, eg application server
+-create a new key-pair
+-create a new ec2 instance on VPC in the private facing subnet, eg database
+    -put this ec2 instance in the same security group.
+    -security groups can stretch across different subnets and different AV zones.
+    -! subnets cannot to across AV zones.
+
+=======================
+3. Create NAT instance
+=======================
+
+-create a new securitiy group for NAT instance.
+-to allow traffic from public subnet to private subnet.
+    -assign to new VPC
+    -default inbound nothing
+    -default outbound 0.0.0.0/0 all.
+-new inbound rules:
+    1) -Type  : HTTP
+       -Source: 10.0.2.0/24 ( where database is )
+    2) -Type  : HTTPS
+       -Source: 10.0.2.0/24 ( where database is )
+-new outbound rules:
+    1) -Type  : HTTP
+       -Destination: 0.0.0.0/0 
+
+-create a new EC2 instance for NAT!!
+-instead of quick start choose community API, search for NAT and select the top one.
+-put it in public subnet.
+-disable auto-assign IP, do it manually.
+-to get internet access you need a public IP OR elastic IP  assigned, or before an elastic load-balancer.
+-create elastic IP and associate it with your new NAT server.
+-!on NAT ec2 instance, click actions -> networking -> change source/dest. check -> turn it off.
+-ec2 instances always have source/dest checking on by default. disable it for NAT servers!! duh!
+
+-now create a new route so servers in private subnets can talk to nat server.
+-use your default route table
+-edit -> add route 
+    - target: myNatVM ec2 instance
+    - destination: 0.0.0.0/0
+
+-now you can yum update from your private subnets.
+
+=======================
+4. VPC ACLs
+=======================
+
+-firewall, network rules across entire subnets 
+-overrules rules in security group.
+-numbered list of rules, starting with lowest number first
+-determines which traffic can go in and out of subnet.
+-start at rule 100, recommend increment by 100
+
+-default ACL created when VPC is created.
+-default ACL allows all inbound and all outbound traffic.
+-you can create a custom ACL and everything wil be closed by default.
+-each subnet must be associated with ACL, if not assigned will be assigned the default ACL.
+
+-add our 3 subnets to it.
+
+
+============
+5. Summary.
+============
+
+-5 VPC per region!
+-
+

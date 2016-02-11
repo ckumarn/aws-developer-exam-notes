@@ -1,0 +1,131 @@
+=======================
+1. Create EC2 Instance
+=======================
+
+1- Choose AMI 
+    -Amazon Machine Image eg: RedHat, SuSE, Amazon Linux, Windows etc
+2- Instance Type
+    -Select compute,memory,network ie vCPU, Memory, Storage(EBS) 
+3- Configure Instance
+    -IAM role: s3-admin-access, network ip, subnet, public IP, shutdown behaviour, user data script to run at launch etc.
+4- Add Storage
+    -ESB
+5- Tag Instance
+    -Name, Owner etc
+6- Security Group
+       -Firewall rules
+       -Control traffic
+7- Review
+8- Launch
+    -Keys. Use existing key-pair or create new key pair.
+    -Linux use .pem file, windows needs ppk use putty keygen.
+9-Login
+    -public IP is: 54.229.248.28 
+    -chmod 600 MyEC2Key.pem -rw------
+    -ssh 54.229.248.28 -l ec2-user -i MyEC2Key.pem
+
+      Last login: Wed Feb  3 11:58:37 2016 from 05442388.skybroadband.com
+
+        __|  __|_  )
+        _|  (     /   Amazon Linux AMI
+       ___|\___|___|
+                            
+      https://aws.amazon.com/amazon-linux-ami/2015.09-release-notes/
+      20 package(s) needed for security, out of 39 available
+      Run "sudo yum update" to apply all updates.
+      [ec2-user@ip-172-31-24-49 ~]$ )
+
+
+==============================
+2. AWS-CLI -Using Credentials
+==============================
+
+Access services (eg s3) by creating a user with permissions on console, then using /root/.aws/config file to store user credentials for those services.
+
+-Create user mys3user
+-Create group: s3-admin with policy AmazonS3FullAccess.
+-run command: sudo aws s3 ls  - shows nothing.
+-run command: sudo aws configure - creates a file /root/.aws/config
+    [default]
+    aws_access_key_id=AKIAIMWIAHCBNL7Y4X4A
+    aws_secret_access_key=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
+    region = eu-west-1
+-run command: sudo aws s3 ls  - shows s3 buckets.
+
+
+=======================
+3. AWS-CLI -Using Roles
+=======================
+
+Access services (eg s3) by assigning an IAM role to the instance. You cannot do this on a running instance! 
+
+==========================================
+4. Install PHP HTTPD via SDK via Composer
+==========================================
+
+-spin up a new instance. 
+-in Configure Instance, in user data enter this startup code
+    #!/bin/bash
+    yum update -y
+    yum install httpd24 -y #apache 2.4
+    service httpd start
+-tag name phpsdkwebserver
+-security group, SSH and HTTP/S open.
+-login to machine
+-check httpd service is running
+-yum install git php56
+-create php script in /var/www/html eg test.php 
+    <? phpinfo(); ?>
+-go to browser to test: eg: http://54.175.66.66/test.php 
+-google search for aws sdk for php install
+-instructions say: curl -sS https://getcomposter.blah | php
+                   php composer.phar require blah
+
+-new script needs <?php require 'vendor/autoload.php' 
+
+================
+5. Using PHP SDK
+================
+
+-boring shit, connect to s3, create bucket, create file in bucket and delete etc
+-get this git clone https:/github.com/acloudguru/s3 for scripts.
+
+===============
+6. EC2 Metadata
+===============
+
+-need to know URL to get instance metadata!
+-curl http://169.254.169.254/latest/meta-data  :from your instance cmdline!
+-give list of stuff eg: hostname, ami-id etc
+-curl http://169.254.169.254/latest/meta-data/hostname  
+-curl http://169.254.169.254/latest/meta-data/public-ipv4  
+
+-get this git clone https:/github.com/acloudguru/metadata for scripts.
+
+=======================================
+7. Elastic Load Balancers Exam Tips
+=======================================
+
+-can have multpile SSL certificates can be terminated on ELB
+-ELB arent free, per hour/ per GB 
+-free stuff: CloudFormation, Elastic Beanstalk, AutoScaling
+-ports include 25 smtp, 80 http, 443 https, 1024-65535
+-http codes 200 OK, 3xx redirection, 4xx client error, 5xx server error
+
+==================
+8. SDKs Exam Tips
+==================
+
+-sdks android, ios, javascript (browser)
+-java, dotnet, nodejs, php, python, ruby
+-default region US-EAST-1
+-java/php have default region
+-nodejs doesnt have default region
+
+==================
+9. Summary
+==================
+
+-use roles over stored credentials
+-install php sdk
+-http codes

@@ -1,0 +1,12 @@
+DynamoDB
+
+S3
+
+little beet SQS & SNS 3/4 questions.
+
+probably VPC 
+
+===========
+80 minutes
+55 questions
+

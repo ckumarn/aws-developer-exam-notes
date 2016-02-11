@@ -1,0 +1,10 @@
+=============
+1. Intro
+=============
+
+-run an manage webapps = PAAS.
+-dont pay for this, but you do pay the services it creates.
+-!can come preconfigures with: IIS, Node.js, PHP, Python, Ruby, Tomcat, Docker, Docker Glassfish, Docker Python
+-load-balancing and autoscaling
+-config: can changes autoscaling number of instances, when it autoscales
+       : AZ zones, storage, notifications, edit php.ini, etc..

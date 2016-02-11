@@ -1,0 +1,39 @@
+===============
+1.Intro
+===============
+
+-Push message, no polling
+-instantaneous message notification
+-pub-sub messaging paradigm.
+-pay-as-u-go pricing
+-cloudwatch tied into SNS
+-to apple, google, fireOS, etc
+-SMS text mesage , email or SQS queue service, or any HTTP endpoint.
+-prevent messages from being lost, all messages published to SNS are stored reduntantly across multiple AZ's. Availiblity Zones.
+-TTL if not delivered in X time, the expire the message. No default, can be blank.
+
+Topic
+------
+-Group muitple recpiients into a topic.
+-Access point for allowing recpiients to dynamically subscribe to identical copies of the same notification.
+-one topic can have multiple endpoints eg: google, apple, and SMS
+
+Pricing
+-------
+
+-0.50c per 1 million requests
+-0.06 / 100,000 notification deliveries over HTTP
+-0.75 / 100 notification deliveries over SMS
+-2.00 per 100,000 notification deliveries over Email.
+
+-Exam! data format is JSON!
+
+===============
+2.Summary
+===============
+
+-topic, subscribers 
+-push = SNS
+-intantaneous
+-multiple protocols in one topic, HTTP, HTTPS, Email, Email-JSON, Amazon SQS, Application
+-messages can be customised for each protocol.

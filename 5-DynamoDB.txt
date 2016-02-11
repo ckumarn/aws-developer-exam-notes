@@ -1,0 +1,319 @@
+========
+1.Intro
+========
+
+-NoSQL
+-consistent, single-digit milli-second latency at any scale.
+-fully managed, no patching, infrastructure
+-document and key-value
+-mobile,web,gaming,ad-tech,IoT
+
+-ssd storage
+-3 geographic zones
+-eventual consistent reads
+    -within a sec across all copies of data.
+    -best performance.
+-strongly consistent reads
+    -returns a reuslt that reflects all writes that recevied a successful response prior to the read.
+    -confirm info is written, best integrity.
+
+-pricing 
+-provisioned thoughtput capcity.
+    -write $0.0065/hour for every 10 units.
+    -read  $0.0065/hour for every 50 units.
+-storage costs $0.25/Gb/month    
+
+
+===============
+2.Create table
+===============
+
+-create EC2 role with policy AmazonDynamoDBFullAccess.
+-spin up instance with role and login
+-yum install php php-mysql httpd git -y
+-service httpd start
+-/var/www/html; phpinfo script to test
+-install php aws sdk using composer
+-git glone https://github.com/acloudguru/dynamodb
+-create and upload data scripts.
+
+createTable
+-----------
+
+$response = $client->createTable(array(
+    'TableName' => 'ProductCatalog',
+    'AttributeDefinitions' => array(
+        array(
+            'AttributeName' => 'Id',
+            'AttributeType' => 'N'
+        )
+    ),
+    'KeySchema' => array(
+        array(
+            'AttributeName' => 'Id',
+            'KeyType' => 'HASH'
+        )
+    ),
+    'ProvisionedThroughput' => array(
+         'ReadCapacityUnits'    => 10,
+         'WriteCapacityUnits' => 5
+    )
+));
+
+batchWriteItem
+---------------
+
+$response = $client->batchWriteItem(array(
+    'RequestItems' => array(
+        $tableName => array(
+            array(
+                'PutRequest' => array(
+                    'Item' => array(
+                        'Id'              => array('N' => '1101'),
+                        'Title'           => array('S' => 'Book 101 Title'),
+                        'ISBN'            => array('S' => '111-1111111111'),
+                        'Authors'         => array('SS' => array('Author1')),
+                        'Price'           => array('N' => '2'),
+                        'Dimensions'      => array('S' => '8.5 x 11.0 x 0.5'),
+                        'PageCount'       => array('N' => '500'),
+                        'InPublication'   => array('N' => '1'),
+                        'ProductCategory' => array('S' => 'Book')
+                    )
+                ),
+            ),
+            array(
+                'PutRequest' => array(
+                    'Item' => array(
+                        'Id'              => array('N' => '102'),
+                        'Title'           => array('S' => 'Book 102 Title'),
+                        'ISBN'            => array('S' => '222-2222222222'),
+                        'Authors'         => array('SS' => array('Author1', 'Author2')),
+                        'Price'           => array('N' => '20'),
+                        'Dimensions'      => array('S' => '8.5 x 11.0 x 0.8'),
+                        'PageCount'       => array('N' => '600'),
+                        'InPublication'   => array('N' => '1'),
+                        'ProductCategory' => array('S' => 'Book')
+                    )
+                ),
+            ),
+
+
+===========
+3.Indexes
+===========
+
+-Primary Keys
+    -Hash 
+        -eg: select student_id = 161
+        -Unordered Index on Hash Primary Key
+    -Hash & Range
+        -eg: eg: select student_id = 161 and date between blah and blah
+        -Unordered Index on Hash Primary Key AND Sorted Index on Range Primary Key
+
+-Secondary Index Types
+    -Local
+        -Has SAME hash key , different range key 
+        -Can ONLY be created when creating a table. Cannot be removed or modified later.
+        -5 allowed per table
+    -Global
+        -Has DIFFERENT hash key and DIFFERENT range key     
+        -CAN be created when creating a table. CAN be added later.
+        -5 allowed per table
+
+WTF is all this?
+
+===============
+4.Query vs Scan
+===============
+
+-Query 
+    -using only primary key.  eg wehere my_primary_key_hash = 200;
+    -optionally provide a range key eg: select * where movie_rented = 200 and date between ...
+    -default returns all data attributes BUT you can use ProjectionExpression parameter to return subset of attributes.
+    -always sorted by range key. non numberic order is by ASCII value, defaut is ascending. use ScanIndexForward = false to return descending
+-Scan
+    -examines every item in the table.
+    -default returns all data attributes BUT you can use ProjectionExpression parameter to return subset of attributes.
+
+    -dont do this obvs. design tables to use Query, Get or BatchGetItem APIs instead.
+
+=========================
+5.Provisioned Throughput
+=========================
+
+-Do this in your head.
+-Reads 
+     - 4kb multiples. eg 6kb read is actually 8kb.
+     - eventualy consistent read is 2 reads / second  (default)
+     - strongly  consistent read is 1 reads / second
+-Writes 
+     - 1kb 
+     - 1 write / second
+
+Question 1: App requires 10 read items of 1kb / second using eventual consistency. What should you set the read throughput to?
+
+-First calcuate how many read units we need / item.
+-1kb / 4kb = 0.25
+-0.25 rounded to nearest whole number = 1 read unit / item.
+-1 x 10 items = 10
+-using eventual consistency we get 10 / 2 = 5 units of read throughput
+
+FORMULA: 
+
+(SIZE OF READ / 4KB) ROUNDED UP X NUMBER OF ITEMS
+IF eventualy consistency then
+DIVIDE BY TWO
+
+Question 2 : App requires 10 read items of 6kb / second using eventual consistency. What should you set the read throughput to?
+
+(6KB/4KB) = 1.5 ROUNDED UP = 2 X 10 = 20 / 2 = 10
+
+BETTER FORMULA:
+
+(SIZE OF READ ROUNDED UP TO NEAREST 4KB ) / 4 X NUMBER OF ITEMS
+
+5kb 8kb) / 4 = 2 X 600 = 1200 / 2 = 600
+
+(6 ROUNDED UP TO 8) / 4 = 2 X 10 ITEM = 20 / 2 EVENTUAL CONSISTENCY = 10
+
+Question 3 : App requires 5 read items of 10KB / second using eventual consistency. What should you set the read throughput to?
+
+12/4 = 3 READ UNITS PER ITEM
+
+3 X 5 ITEMS = 15
+
+15 / 2 EVENTUAL CONSISTENCY = 7.5 READ THROUGHPUT
+
+Question 4 : App requires 5 read items of 10KB / second using strongly consistency. What should you set the read throughput to?
+
+12/4 = 3 READ UNITS PER ITEM
+
+3 X 5 ITEMS = 15
+
+Question 5 : App requires 5 write items of 10KB / second using strongly consistency. What should you set the write throughput to?
+
+SIZE OF WRITE X NUMBER OF WRITES 
+
+5 X 10 = 50;
+
+Question 6 : App requires 5 write items of 10.5KB / second using strongly consistency. What should you set the write throughput to?
+
+SIZE OF WRITE X NUMBER OF WRITES 
+
+5 X 11 = 55;
+
+
+-If you exceed your throughput OR global secondardy indexes you'll see
+
+400 HTTP Status Code. ProvisionedThroughputExceededException
+
+
+=====================================================
+6.Web Identity Providers to Authenticate to DynamoDB
+=====================================================
+
+-AssumeRoleWithWebIdentity Role.
+-User Autenticated with Facebook and given a token. 
+-Your code called AssumeRoleWithWebIdentity API provides the token AND the ARN for the IAM role.
+-App can now access dynamodb from between 15 mins to 1 hour. 1 hour default.
+
+
+=====================================================
+7.Web Identity Providers to Authenticate to DynamoDB
+=====================================================
+
+-conditional writes, for concurrent consistency.
+-update if thing = thing as it was when i got it. if thing is changed, then my value is useless.
+-conditional writes are idempotent. 
+-atomic counters use UpdateItem operation eg: url counter -not idempotent.
+-batch operations 
+    -BatchGetItem API to get multiple items.
+    -upto 1MB of data upto 100 items!
+    -can be from multiple tables
+
+=====================================================
+8.Summary
+=====================================================
+
+Config
+
+-ssd storage
+-3 geo disticnt zones
+-eventual consistent reads defualt  ( consistency within a second ) best read performance
+-strongly consistent reads ( reflects all successful writes prior to the read )
+
+Query VS Scan
+
+-query primary key, hash key attribute name and value, optionally range, use prjectexpression parameter to return subset, sorted numer or ASCII code ascending, use ScanIndexForward = false for decsending.
+-scan examises every item in table, use projectexpression parameter to limit subset returned, inefficient, 
+
+Indexes
+
+-5 global and 5 local indexes
+-local indexes cannot be added later, cannot add local secondary index later.
+-global can be added later
+
+Proviosned Throughput
+
+-All reads are 4kb, eventualy conssited reads are 2 reads / second, strongly i read per second.
+
+conidtional write imdempotent.
+atomic counters write not idempoptent
+BatchGetItem
+Web Identity Provides AssyumeRoleWithWebIdentity, access between 15 minutes to one hour.
+
+=================
+9. Summary 2
+=================
+
+Config
+-------
+-SSD storage
+-3 geographically distinct DC's
+
+-eventual consistent reads default
+    - consistency across all copies within a second. best read performance.
+-strongly consistent reads
+    - reads returns result reflects all write that were successful
+
+Query vs Scan
+------------
+-Query
+    -using primary key attribute values. Must provide a hash key attribute name and value.
+    -optionally use range key and value and use a comparision operator to define results.
+    -default reutnrs all attributes, use ProjectionExpression to limit which attributes to return
+    -sorted by range key, numeric else ASCII char code ascending. To reverse use ScanIndexForward=false.
+    -default eventual consistent, can change to strongly.
+-Scan
+    -examines all items in table. 
+    -not efficient
+    -use ProjectExpression to limit which attributes to return
+
+Indexes
+---------
+-5 global indexes
+-5 local indexes
+-global indexes can be created after table created.
+-local indexes cannot be created after table created.
+
+Priviosned Throughput
+---------------------
+Read: 4kb.
+
+Conditional Write
+------------------
+
+-if item price is somethen then update
+
+Atomic Counters
+---------------
+
+-increment or decrement without interfering with other writes
+-not imdemptotent.
+
+-BatchGetItem - up to 1MB containing up to 100 items.
+
+-Web Identity: - AssumeRoleWithWebIdentity and give ARN for IAM role.
+    -have access between 15mins to 1 hour default is 1 hour.
+
+

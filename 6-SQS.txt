@@ -1,0 +1,77 @@
+===============
+1. What is it?
+===============
+
+-SQS is pull not push
+-web service access to message queue
+-distributed queue system
+-decouple components of a system to run idendentadnty.
+-queue is like a store
+-messages up to 256KB of text any format
+-queue is like a buffer
+-queues resolves issues like when producer works faster than the consumer eg: stuff isnt lost of producer suddenly croaks.
+-ensures delivery of each message at least once 
+-supports multiple readers and writers on same queue.
+-good way to scale.
+-does not guarntee FIFO!
+-if you need ordering, then put order info in message so your system can handle that shit.
+
+-eg: large number of image files to encode in the queue
+    -a server asynronsously pull the task message from the queue
+    -retreive the named file
+    -process encode etc
+    -write image back to S3
+    -write task complete message to another queue
+    -delete the original task message
+    -deletes the original task message
+    -checks for more messages in teh worker queue
+
+-messages in queue have a visiblity timeout clock.
+-this visibility timeout starts once the message has been picked up!
+-this is how amazon guantees the message is delivery at least once.
+-so if server picks up message but then dies the visilibity timeout will expire, leaving the message on the queue.
+-if server completes successfully, it should dleete the message from the queueu within the visibility timeout.
+
+-autoscaling - groups: 
+
+!-Exam Tips
+!-SQS is not FIFI
+!-12 hours visibility timeout
+!-provide at least once delivery therefore make system idempotent
+!-256kb message size
+!-orginally 64kb
+!-billing based on 64kb chunk, there 4 chunks per message
+!-first 1 million is free.
+!-$0.50c SQS requests / month. thereafter $0.00000050 / SQS request. 
+!-single request can have 1 to 10 messages, total payload of 256kb.
+!-each 64kb chunk is billed as one request
+!-eg one api call of 256kb payload is billed as 4 requests.
+
+===============
+2. More
+===============
+
+-sqs messages can delivered multiple times and in any order
+-default visibility timeout is 30 seconds. 
+-maximum visilibity is 12 hours.
+-ChangeMessageVisibility action to change.
+-long polling: 
+    -saves money
+    -way to retreeive messages
+    -doesnt return a response if queue is empty - until the long poll timeout times out! 
+    -short polling does return a response immediatly, being chanrged for each poll.
+    -long poll timeout maximum is 20 seconds.
+-fanning out:
+    -create SNS topic
+    -subscribe multiple SQS queues to the SNS topic.
+    -when a message is sent to SNS topic, it gets fanned out to the SQS queues.
+
+=====================
+Summary x2
+=====================
+
+-SQS multiple times and order
+-default isibility timeout is 30 seconds which is default, max is 12 hours.
+-ChangeMessageVisibility action.
+-long polling , max time out - 20 seconds.
+-fanning - uses with SNS topic and use multiple SQS queues to subscribe to the topic.

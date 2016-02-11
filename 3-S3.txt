@@ -1,0 +1,198 @@
+============
+1.Intro
+============
+
+-bucket=directory in a region.
+-standard = 99.99% availibility -99.99999999999% durability 11 9's
+-reduced redundncy storage RRS = 99.99% availibility -99.99% durability 2 9's cheaper
+-auto failover 
+-each storage has metadata key-value, and versioning
+-can encrypt
+
+============
+2.S3 Types
+============
+
+-Standard, RRS, Glacier
+-Glacier = data archiving, -low cost, $0.01 / GB / month. Optimised for infrequently accessed data eg every 3/5 hours
+
+============
+3.S3 Versioning
+============
+
+-stores all versions/writes of object, even deletes.
+-backup tool
+-cannot be disabled once enabled, only suspended, and you pay for each new version!
+-enable bucket->properties->versioning
+-if you delete a versioned file, it put a delete marker in version history. restore the file by deleting the delete marker.
+-delete permanaently then delte all versions and delete marker.
+
+
+=======================
+4.S3 Lifecycle Management
+=======================
+
+-can be used with and without versioning
+-can be applied to current versions and previous versions.
+-following can be used in conjunction with or without versioning
+    -archive only
+    -permanently delete only
+    -archive then permanently delete
+-in S3 properties -> add rule -> entire bucket or one folder.
+-action on current version: 
+    do nothing 
+    archive only - archive to glacier after X days.
+    expire only  - remove from glacier after X days.
+    archive and then expire 
+-action on previous version:
+    do nothing 
+    archive only - archive to glacier after X days.
+    expire only  - remove from glacier after X days.
+    archive and then expire 
+    
+
+
+==============
+5.S3 Encryption!
+==============
+
+-upload and download via SSL
+-auto encrypt on platform
+-manage keys through AWS management service, or provide your own keys.
+-AES 256 advanced encryption standard
+-server side: S3 Managed Keys - standard service
+              KMS-Managed Keys - slightly diferent more money, get envelope key, get full audit trail.
+              Customer prodivded keys
+-client side: encrypt first and send over SSL.
+
+
+==============
+6.S3 Security
+==============
+
+-all buckets are private by default
+-ACLs, eg indiviaul user can access only one bucket as readonly.
+-integrates with IAM using roles. 
+-all end points are encrypted by SSL
+
+==============
+7.S3 Functionality
+==============
+
+-static websites can be hosted on S3, no need for webserver!
+ great if launching a product and expect lots of traffic, just host on S3 and autoscaling and load balancing is done for you.
+-S3 integrates with CloudFront CDN
+-multi-part uploads, eg: upload big file concurently. suggested for files over 100MB.
+-can resume a stopped upload.
+-eventual consistency. All AZ's will eventually be consistent. 
+-logging not on by default
+-event notifications eg SNS topic(text), SQS queue, lamba function
+-tags,versioning, lifecycle
+
+==============
+8.S3 Use cases
+==============
+
+-file shares for networks.
+-backup/archiving
+-origin for cloudfront CDNs
+-hosting static files/websites
+
+==============
+9.S3 Website
+==============
+
+-endpoint- acloudgurusite.s3-website-eu-west-1.amazonaws.com
+
+bucket.
+s3-website-  THIS means static webpage is turned on!
+region
+.amazonaws.com
+
+more: 
+https://s3-eu-west-1.amazonaws.com/victor-first-bucket/Test+Folder/IMG_1498.JPG  -THIS is not static website
+http://victor-first-static.s3-website-eu-west-1.amazonaws.com/index.html   -THIS is static website
+
+NO WWW
+STATIC IS NOT HTTPS
+
+==============
+10.S3 CORS
+==============
+
+-Cross Origin Resource Sharing
+-browsers limit the way web pages load from one site can interact with content from antohersite.
+-Turn on in console or S3 API to cofnifugure bucket for CORS.
+-using a CORS.xml with crap in it, upload the xml to the permissions on the bucket.
+
+==================
+11.S3 CloudFront CDN
+==================
+
+-content delviry network
+-can deliver files based on geo location, and cache them on a CDN near the user.
+-set a TTL time to live on files.
+-can deliver enitre website,static, dynamic, streaming, interactive 
+-works with S3, EC2, ELB, Route 53, and non-AWS origin server.
+-origin: origin of all files that CDN will distribute, either s3 bucket, ec2 instance, ELB or route 53
+-distribution: name given to CDN which consists of a collection of edge locations.
+-Distribution Types:
+    -Web distribution: used for websites
+    -RTMP            : used for media streaming/flash files.
+
+==================
+12.S3 Create CDN
+==================
+
+-create a static s3 website, serving a image file, and the image file will be servered from a CDN
+-Create CDN Distribution:
+    Origin Settings
+    ---------------
+   -delivery method        = web
+   -Origin Domain name     = your bucket eg: acloudguru.s3.amazonaws.com
+   -Restrict Bucket Access = Yes
+   -Create origin identity = create new identity
+
+    Default Cache Behaviour Settings
+    --------------------------------
+   -path pattern           = use regex. eg all *.jpegs to this bucket etc.
+   -allowed HTTP methods
+   -object caching: -use origin
+                    -customise, then set minimum TTL 
+   -forward cookies, forward query strings
+   -restirct viewer access using signed URLs X.509 certificates or PEM files.
+
+    Distribution Settings
+    ---------------------
+   -price class: use all edge locations best eprformance
+   -alternate domain names (CNAMEs) : cdn.acloudguru : Route 53!
+   -SSL cert : use default Cloudfront certificate.
+   -default root object: index.html
+
+
+===========
+13.S3 Summary
+===========
+
+-object based
+-can only store flat files on s3, no databases!
+-bucket using cmdline
+-s3 website static
+-CORS config
+-S3 Version 
+-S3 lifecycle management and Glacier
+-Cloudfront overview create SDN
+-use s3 in programs eg PHP SDK for AWS etc
+
+===============
+14.S3 Exam Tips
+===============
+
+-AES 256 encryption
+-min file size is 1 byte max 5TB
+-no limit on s3 storage
+-100 buckets per region
+-static webiste format:  {bucket}.s3-website-{region}.amazonaws.com/ NO WWW!
+-X.509 certs to secure s3 bucket!!
+-X.509 certs to secure CDN!!
+-eventual consistency across AZ (availibity zone)
