@@ -1,3 +1,3 @@
-# awe-developer-exam-notes
+# aws-developer-exam-notes
 
 AWS developer exam notes
